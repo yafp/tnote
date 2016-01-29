@@ -36,12 +36,15 @@ TOC:
     tnote [OPTION] FILE
 
     Options:
-        -a or --add:            Add a text file to the tnote note directory
-        -e or --edit:           Edit a tnote note, using the default editor
+    - Search:
         -s or --search:         Search for keyword(s) in file names and inside file text
         -st or --searchtitle:   Search for keyword(s) in file names
         -sc or --searchcontent: Search for keyword(s) inside file text
         -l or -- list:          List all notes
+    - Add and edit:
+        -a or --add:            Add a text file to the tnote note directory
+        -e or --edit:           Edit a tnote note, using the default editor
+    - Misc:
         -h or --help:           Display the help
         -v or --version:        List version and author info
 

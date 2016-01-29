@@ -87,14 +87,6 @@ function check_requirements
     fi
 }
 
-## Function:     Clears the screen & prints the header
-## Arguments:	 none
-function display_header
-{
-    clear
-    printf "${underline}${bold}tNote${normal} - $1\n\n"
-}
-
 
 ## Function:     Prints a new line
 ## Arguments:    amount of new lines (example: newLine 5)
@@ -106,6 +98,15 @@ function newLine
         printf "\n"
         loopCycle=$[$loopCycle+1]
     done
+}
+
+## Function:     Clears the screen & prints the header
+## Arguments:	 none
+function display_header
+{
+    clear
+    printf "${underline}${bold}tNote${normal} (v$version) - $1"
+    newLine 2
 }
 
 
@@ -265,6 +266,7 @@ case $1 in
         printf "${bold}Listing all notes due to missing searchphrase:${normal}\n"
         echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
             ls -1 "$DIR"
+            #ls -lsh "$DIR" | awk '{print $6,$10}'
         done
         exit 0
     fi
