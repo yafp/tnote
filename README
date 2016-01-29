@@ -65,14 +65,14 @@ TOC:
     default. This is set to $HOME/.tnote if left unspecified by the user.
 
     TNOTEPATH is similar to the PATH variable, except it's used for tnote
-    notes.  If you're referencing tnote sheets from multiple directories,
+    notes.  If you're referencing tnote notes from multiple directories,
     you'll want to make use of this environment variable.  If this variable is
     not set by the user, it's populated by DEFAULT_TNOTE_DIR.  If the user does
     set this variable, it's up to them to include every directory in which tnote
-    sheets are kept, as DEFAULT_TNOTE_DIR is not automatically added to the
+    notes are kept, as DEFAULT_TNOTE_DIR is not automatically added to the
     TNOTEPATH variable.
 
-    TNOTE_TEXT_VIEWER is the program used to view the normal tnote sheets.  It's
+    TNOTE_TEXT_VIEWER is the program used to view the normal tnote notes.  It's
     assumed to accept text from stdin ('cat' and 'less' are good options).
     'cat' is used by default.
 
