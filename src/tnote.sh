@@ -8,7 +8,7 @@
 #===================     CONFIG AND OTHER DEFINITIONS    =======================
 
 # script version
-version="0.2.x"
+version="0.2.20160129"
 
 ## Define some formatting variables for output
 bold=$(tput bold)
@@ -25,7 +25,6 @@ blue=$(tput setaf 4)
 magenta=$(tput setaf 5)
 cyan=$(tput setaf 6)
 white=$(tput setaf 7)
-
 
 
 #============================     FUNCTIONS    =================================
@@ -90,10 +89,15 @@ function display_header
 
 
 ## Function:     Prints a new line
-## Arguments:
+## Arguments:    amount of new lines (example: newLine 5)
 function newLine
 {
-    printf "\n"
+    loopCycle="0"
+    while [ $loopCycle -lt $1 ]
+    do
+        printf "\n"
+        loopCycle=$[$loopCycle+1]
+    done
 }
 
 
@@ -198,7 +202,7 @@ function view_file
     if file -bL "$1" | grep text > /dev/null; then
         "$TNOTE_TEXT_VIEWER" "$1"
     fi
-    printf "\n"
+    newLine 1
 }
 
 
@@ -239,7 +243,7 @@ case $1 in
             printf "    ${LINE}\n"              # only note-name
         done
     done
-    printf "\n"
+    newLine 1
     exit 0
     ;;
 
@@ -297,7 +301,7 @@ case $1 in
             done
         done
     done
-    printf "\n"
+    newLine 1
     exit 0
     ;;
 
@@ -310,7 +314,7 @@ case $1 in
         exit 1
     fi
     grepper 0 ${@:2}
-    printf "\n"
+    newLine 1
     exit 0
     ;;
 
