@@ -8,7 +8,7 @@
 #===================     CONFIG AND OTHER DEFINITIONS    =======================
 
 # script version
-version="0.2.20160129"
+version="0.2.20160129.01"
 
 ## Define some formatting variables for output
 bold=$(tput bold)
@@ -46,9 +46,9 @@ function check_requirements
 
         # check if cat exists
         if hash cat 2>/dev/null; then
-            printf "Found required cat"
+            printf "Found required cat\n"
         else
-            printf "${red}ERROR:${normal} cat is missing ... search it."
+            printf "${red}ERROR:${normal} cat is missing ... get one.\n"
             exit 1
         fi
     fi
@@ -87,7 +87,6 @@ function check_requirements
     fi
 }
 
-
 ## Function:     Prints a new line
 ## Arguments:    amount of new lines (example: newLine 5)
 function newLine
@@ -108,7 +107,6 @@ function display_header
     printf "${underline}${bold}tNote${normal} (v$version) - $1"
     newLine 2
 }
-
 
 ## Function:     Detects the default editor of the user
 ## Arguments:    none
@@ -216,6 +214,21 @@ function view_file
 
 
 
+function list_all_notes
+{
+    echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
+        ls "$DIR" | while read LINE; do
+            noteCount=$[$noteCount+1]
+            #echo "    ${DIR}/${LINE}"          # full path
+            printf "    ${LINE}\n"              # only note-name
+            #printf " $noteCount\t${LINE}\n"      # only note-name
+        done
+    done
+    newLine 1
+}
+
+
+
 #=======================     CHECK REQUIREMENTS    =============================
 check_requirements
 
@@ -228,8 +241,8 @@ fi
 
 
 #==============================     MAIN    ====================================
-## New Check-Input-Parameter case-structure
-##
+# react on user input
+
 case $1 in
 # Display version
 "-v" | "--version")
@@ -246,16 +259,9 @@ case $1 in
 # List all notes
 "-l" | "--list")
     display_header "List all notes"
-    echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
-        ls "$DIR" | while read LINE; do
-            #echo "    ${DIR}/${LINE}"          # full path
-            printf "    ${LINE}\n"              # only note-name
-        done
-    done
-    newLine 1
+    list_all_notes
     exit 0
     ;;
-
 
 # Search anywhere
 "-s" | "--search")
@@ -263,11 +269,8 @@ case $1 in
 
     ##  If no search-phrase was entered - list everything
     if [[ $# -eq 1 ]]; then
-        printf "${bold}Listing all notes due to missing searchphrase:${normal}\n"
-        echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
-            ls -1 "$DIR"
-            #ls -lsh "$DIR" | awk '{print $6,$10}'
-        done
+        display_header "List all notes (due to missing searchphrase)"
+        list_all_notes
         exit 0
     fi
 
