@@ -1,6 +1,6 @@
 ================================================================================
     tnote.sh        |   version 0.2    |   GPL v3 (see LICENSE)    | 2016-01-28
-    Florian Poeck   |   fidel@yafp.de
+    Florian Poeck   |   https://github.com/yafp/tnote
 ================================================================================
 
 TOC:
@@ -12,10 +12,10 @@ TOC:
 
 1.  What is this?
 
-    'tNote' is a bash script for people who prefer maintaining simple notes
-    from command-line.
+    'tNote' is a bash script for people who prefer maintaining simple text-notes
+    from the command-line.
 
-    It is based on cheat by James Hendrie
+    The code is based on 'cheat' by James Hendrie
 
 
 2.  Install / Uninstall
@@ -36,23 +36,23 @@ TOC:
     tnote [OPTION] FILE
 
     Options:
-        -a or --add:        Add a text file to the tnote note directory
-        -e or --edit:       Edit a tnote note, using the default editor
-        -st:                Search for keyword(s) in file names
-        -sc:                Search for keyword(s) inside file text
-        -s:                 Search for keyword(s) in file names and inside file text
-        -l:                 List all notes with full paths
-        -h or --help:       Display the help
-        -v or --version:    List version and author info
+        -a or --add:            Add a text file to the tnote note directory
+        -e or --edit:           Edit a tnote note, using the default editor
+        -s or --search:         Search for keyword(s) in file names and inside file text
+        -st or --searchtitle:   Search for keyword(s) in file names
+        -sc or --searchcontent: Search for keyword(s) inside file text
+        -l or -- list:          List all notes
+        -h or --help:           Display the help
+        -v or --version:        List version and author info
 
 
     Examples:
-
-        tnote ap:           List all files with 'ap' in the filename; if there
-                            is only one result, it will be displayed
-        tnote -t tar:       Grep for all tnote sheets with 'tar' in the filename
-        tnote -t tar sh:    Grep for sheets with 'tar' or 'sh' in filenames
-        tnote -a foo:       Create a note with the title 'foo'
+        tnote foo:              List all notes with 'foo' in the filename; if there
+                                is only one result, it will be displayed
+        tnote -s foo:           Search all notes with 'foo' in the title or content
+        tnote -st bar:          Search all notes with 'bar' in the filename
+        tnote -sc foo bar:      Search all notes with 'foo' or 'bar' in the content
+        tnote -a foo:           Create a note with the title 'foo'
 
 
     There are a few useful variables for people who use this script a lot:
@@ -77,7 +77,6 @@ TOC:
 4.  Who made it?
 
     This version:   Florian Poeck
-                        fidel@yafp.de
                         https://github.com/yafp
 
     Main version:   James Hendrie

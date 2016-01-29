@@ -1,3 +1,7 @@
 2016-01-27  0.1     Initial release (code is 100% based on cheat by James Hendrie)
 
 2016-01-28  0.2     First official tNote version. Trimmed down to the essential parts
+
+2016-01-xx  0.3     Adding support for notes with blanks in title/name
+                    Removed author email (replaced with GitHub project url)
+                    Changed the user-input-check code (if -> case)

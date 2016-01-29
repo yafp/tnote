@@ -1,26 +1,26 @@
 #!/bin/bash
 ################################################################################
 #   tnote.sh        |   version 0.2    |       GPL v3      |   2016-01-28
-#   Florian Poeck   |   fidel@yafp.de
+#   Florian Poeck   |   https://github.com/yafp/tnote
 ################################################################################
 
 
-###########################################################
-# CONFIG AND STUFF
-###########################################################
+#===================     CONFIG AND OTHER DEFINITIONS    =======================
+
+# script version
+version="0.2.x"
 
 ## Define some formatting variables for output
 bold=$(tput bold)
 normal=$(tput sgr0)
 underline=$(tput smul)
+nounderline=$(tput rmul)
 
-# colors
+# Define some colors  for printf output
 black=$(tput setaf 0)
 red=$(tput setaf 1)
 green=$(tput setaf 2)
 yellow=$(tput setaf 3)
-lime_yellow=$(tput setaf 190)
-powder_blue=$(tput setaf 153)
 blue=$(tput setaf 4)
 magenta=$(tput setaf 5)
 cyan=$(tput setaf 6)
@@ -28,9 +28,10 @@ white=$(tput setaf 7)
 
 
 
-###########################################################
-# CHECK REQUIREMENTS
-###########################################################
+#============================     FUNCTIONS    =================================
+
+## Function:     Check all the requirements
+## Arguments:	 none
 function check_requirements
 {
     ##  Default 'system' directory for tnote sheets
@@ -53,7 +54,7 @@ function check_requirements
     ## check if note folder doesnt exists
     if [ ! -d "$DEFAULT_TNOTE_DIR" ]; then
         mkdir "$DEFAULT_TNOTE_DIR"
-        printf "Initially created tNote notes folder at: $DEFAULT_TNOTE_DIR\n"
+        printf "Initially created tNote folder at: $DEFAULT_TNOTE_DIR\n"
     fi
 
     ##  note path
@@ -65,25 +66,19 @@ function check_requirements
     ##  If not, exit and tell them.
     if [ ! -n "$TNOTEPATH" ]; then
         if [ ! -d "$TNOTE_SYS_DIR" ] && [ ! -d "$DEFAULT_TNOTE_DIR" ]; then
-            echo "ERROR:  No tNote directory found." 1>&2
-            echo -e "\tConsult the help (tnote -h) for more info" 1>&2
+            printf "${red}ERROR:${normal}  No tNote directory found.\n" 1>&2
+            printf "\tConsult the help (tnote -h) for more info\n" 1>&2
             exit 1
         else
             cp -r "$TNOTE_SYS_DIR" "$DEFAULT_TNOTE_DIR"
             TNOTEPATH="$DEFAULT_TNOTE_DIR"
             if [ ! -d "$DEFAULT_TNOTE_DIR" ]; then
-                echo "ERROR:  Cannot write to $DEFAULT_TNOTE_DIR" 1>&2
+                printf "${red}ERROR:${normal}  Cannot write to $DEFAULT_TNOTE_DIR\n" 1>&2
                 exit 1
             fi
         fi
     fi
 }
-
-
-
-###########################################################
-# OTHER FUNCTIONS
-###########################################################
 
 ## Function:     Clears the screen & prints the header
 ## Arguments:	 none
@@ -95,7 +90,7 @@ function display_header
 
 
 ## Function:     Prints a new line
-## Arguments:	 
+## Arguments:
 function newLine
 {
     printf "\n"
@@ -128,16 +123,17 @@ function print_help
 
     printf "${bold}Usage:${normal}  tnote [OPTION] FILE\n\n"
     printf "${bold}Options:${normal}\n"
-    printf "${bold}- Search:${normal}\n"
 
+    printf "${bold}- Search:${normal}\n"
     printf "  -s or --search:\t\tSearch for keyword(s) in note titles and content\n"
     printf "  -st or --searchtitle:\t\tSearch for keyword(s) in note titles\n"
     printf "  -sc or --searchcontent:\tSearch for keyword(s) in note content\n"
-    printf "  -l or --list:\t\t\tList all notes with full paths\n"
+    printf "  -l or --list:\t\t\tList all notes\n"
 
-    printf "${bold}- Create and edit:${normal}\n"
+    printf "${bold}- Add and edit:${normal}\n"
     printf "  -a or --add:\t\t\tCreate a new note\n"
     printf "  -e or --edit:\t\t\tEdit a tnote file using default editor\n"
+
     printf "${bold}- Misc:${normal}\n"
     printf "  -h or --help:\t\t\tThis help screen\n"
     printf "  -v or --version:\t\tDisplay version information\n"
@@ -151,13 +147,12 @@ function print_help
 }
 
 
-
 ## Function:    Display version information
 ## Arguments:   none
 function print_version
 {
     display_header "Version"
-    printf "${bold}tnote.sh${normal} - version 0.1 by Florian Poeck (fidel@yafp.de)\n"
+    printf "${bold}tnote.sh${normal} - version $version by Florian Poeck (https://github.com/yafp/tnote)\n"
 }
 
 
@@ -168,7 +163,7 @@ function grepper
     ##  For every directory in the TNOTEPATH variable
     for arg in ${@:2}; do
         if [[ $1 -eq 0 ]]; then
-            echo -e "${underline}$arg:${normal}"
+            printf "[$arg]\n"
         fi
 
         echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
@@ -202,44 +197,125 @@ function view_file
     ##  Text files
     if file -bL "$1" | grep text > /dev/null; then
         "$TNOTE_TEXT_VIEWER" "$1"
-    #elif file -bL "$1" | grep gzip > /dev/null; then
-        #gunzip --stdout "$dirName/$fileName" | "$TNOTE_TEXT_VIEWER" >& 1
     fi
     printf "\n"
 }
 
 
-###########################################################
-# RUN: CHECK REQUIREMENTS
-###########################################################
+
+#=======================     CHECK REQUIREMENTS    =============================
 check_requirements
 
 
-###########################################################
-# CHECK USERINPUT a.k.a PARAMETERS
-###########################################################
-
-## Function:	Display help
-## Arguments:	-h or --help or none
-if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ $# -lt 1 ]; then
+#===================     CHECK FOR MISSING PARAMETER    ========================
+if [ $# -lt 1 ]; then
 	print_help
 	exit 0
 fi
 
 
-## Function:	Print version information
-## Arguments:	-v or --version
-if [ "$1" = "-v" ] || [ "$1" = "--version" ]; then
-	print_version
-	exit 0
-fi
+#==============================     MAIN    ====================================
+## New Check-Input-Parameter case-structure
+##
+case $1 in
+# Display version
+"-v" | "--version")
+    print_version
+    exit 0
+    ;;
+
+# Display help
+"-h" | "--help")
+    print_help
+    exit 0
+    ;;
+
+# List all notes
+"-l" | "--list")
+    display_header "List all notes"
+    echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
+        ls "$DIR" | while read LINE; do
+            #echo "    ${DIR}/${LINE}"          # full path
+            printf "    ${LINE}\n"              # only note-name
+        done
+    done
+    printf "\n"
+    exit 0
+    ;;
 
 
-## Functions:	Create or Edit a file
-## Arguments:	-e or --edit
-##              -a or --add
-if [ "$1" = "-e" ] || [ "$1" = "--edit" ] || [ "$1" = "-a" ] || [ "$1" = "--add" ]; then
+# Search anywhere
+"-s" | "--search")
+    display_header "Search anywhere (titles and content)"
 
+    ##  If no search-phrase was entered - list everything
+    if [[ $# -eq 1 ]]; then
+        printf "${bold}Listing all notes due to missing searchphrase:${normal}\n"
+        echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
+            ls -1 "$DIR"
+        done
+        exit 0
+    fi
+
+    ##  Grep for every subject/title they listed as an arg
+    printf "${bold}Titles:${normal}\n"
+    for arg in ${@:2}; do
+        printf "[$arg]\n"
+
+        echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
+            ls "$DIR" | grep -i "$arg" | while read LINE; do
+                echo "    $LINE" | sed 's/.gz//g'
+            done
+        done
+    done
+
+    ## Search the content
+    printf "\n${bold}Content:${normal}\n"
+    grepper 0 ${@:2}
+    exit 0
+    ;;
+
+# Search only title
+"-st" | "--searchtitle")
+    display_header "Search note titles"
+
+    ##  If they did not supply a keyword, list everything
+    if [[ $# -eq 1 ]]; then
+        echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
+            ls -1 "$DIR"
+        done
+        exit 0
+    fi
+
+    ##  Grep for every subject they listed as an arg
+    for arg in ${@:2}; do
+        printf "[$arg]\n"
+
+        echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
+            ls "$DIR" | grep -i "$arg" | while read LINE; do
+                echo "    $LINE" | sed 's/.gz//g'
+            done
+        done
+    done
+    printf "\n"
+    exit 0
+    ;;
+
+# Search only content
+"-sc" | "--searchcontent")
+    display_header "Search note content"
+    ##  If they did not supply a keyword, tell them
+    if [[ $# -eq 1 ]]; then
+        printf "${red}ERROR:${normal}  Keyword(s) required\n" 1>&2
+        exit 1
+    fi
+    grepper 0 ${@:2}
+    printf "\n"
+    exit 0
+    ;;
+
+# Edit or add
+"-e" | "--edit" | "-a" | "--add")
     if [ "$1" = "-a" ] || [ "$1" = "--add" ]; then
         display_header "Adding a new note"
     else
@@ -248,13 +324,13 @@ if [ "$1" = "-e" ] || [ "$1" = "--edit" ] || [ "$1" = "-a" ] || [ "$1" = "--add"
 
     # check if a second parameter was supplied
     if [ "$#" -lt 2 ]; then
-        echo "${red}ERROR:${normal}  No note title specified" 1>&2
+        printf "${red}ERROR:${normal}  No note title specified\n" 1>&2
         exit 1
     fi
 
     # check if more then 2 parameter was supplied -> error
     if [ "$#" -gt 2 ]; then
-        echo "${red}ERROR:${normal}  Too many parameters ($#)" 1>&2
+        printf "${red}ERROR:${normal}  Too many parameters ($#)\n" 1>&2
         exit 1
     fi
 
@@ -271,7 +347,7 @@ if [ "$1" = "-e" ] || [ "$1" = "--edit" ] || [ "$1" = "-a" ] || [ "$1" = "--add"
                 let existing=$(( $existing + 1 ))
                 filesToEdit+=("${F}/${2}")
             else
-                echo "${yellow}WARNING:${normal}  Not a text file:  '${2}'"
+                printf "${yellow}WARNING:${normal}  Not a text file:  '${2}'\n"
             fi
         fi
     done < <(echo "$TNOTEPATH" | sed 's/:/\n/g')
@@ -286,175 +362,64 @@ if [ "$1" = "-e" ] || [ "$1" = "--edit" ] || [ "$1" = "-a" ] || [ "$1" = "--add"
     "$EDITOR" "$filesToEdit" # modified for blank-support
 
     exit 0
-fi
+    ;;
 
+*)  # Any other unexpected user input - try to search note by title
+    RESULTS=0
+    declare RESULTS_ARRAY=()
 
-## Function:	Searching for keywords in title
-## Arguments:	-st or --searchtitle
-if [[ "$1" = "-st" ]] || [[ "$1" = "--searchtitle" ]] ; then
-    display_header "Search by title"
+    while read DIR; do
 
-    ##  If they did not supply a keyword, list everything
-    if [[ $# -eq 1 ]]; then
-        echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
-            ls -1 "$DIR"
-        done
-        exit 0
-    fi
+        ##  If we hit an 'exact' match (user entered complete note title)
+        if [[ -e "$DIR/$1" ]]; then
+            display_header "Note: ${bold}$1${normal}"   # display head for single note
+            "$TNOTE_TEXT_VIEWER" "$DIR/$1"              # display note content
+            exit 0
+        fi
 
-    ##  Grep for every subject they listed as an arg
-    for arg in ${@:2}; do
-        echo -e "${underline}$arg:${normal}"
+        ##   grab the number of 'hits' given by the user's query
+        DIR_RESULTS=$(ls "$DIR" | grep -i "$1" | wc -l)
 
-        echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
-            ls "$DIR" | grep -i "$arg" | while read LINE; do
-                echo "    $LINE" | sed 's/.gz//g'
-            done
-        done
-    done
-    printf "\n"
-    exit 0
-fi
+        if [[ $DIR_RESULTS -gt 0 ]]; then
+            while read R; do
+                RESULTS_ARRAY+=("${R}:${DIR}")
+            done < <(ls "$DIR" | grep -i "$1")
+        fi
 
+        let RESULTS=$(( $RESULTS + $DIR_RESULTS ))
 
-## Function:	Search for words inside the files
-## Arguments:	-sc or --searchcontent
-if [[ "$1" = "-sc" ]] || [[ "$1" = "--searchcontent" ]]; then
-    display_header "Search note content"
-    ##  If they did not supply a keyword, tell them
-    if [[ $# -eq 1 ]]; then
-        echo "${red}ERROR:${normal}  Keyword(s) required" 1>&2
+    done < <(echo "$TNOTEPATH" | sed 's/:/\n/g')
+
+    ##  If there are no results, inform the user and let the program quit
+    if [ $RESULTS -eq 0 ]; then
+        display_header "Search note by name (0 results)"
+        printf "[$1]\n"   # show searchphrase
+        printf "    No file matching pattern '$1' in $TNOTEPATH\n\n" 1>&2
         exit 1
-    fi
-    grepper 0 ${@:2}
-    printf "\n"
-    exit 0
-fi
 
+    ##  If there is 1 result, display that note
+    elif [ $RESULTS -eq 1 ]; then
+        for R in ${RESULTS_ARRAY[@]}; do
+            fileName="$(echo "$R" | cut -f1 -d':')"
+            dirName="$(echo "$R" | cut -f2 -d':')"
 
-## Function:    Searching inside note titles and content (everywhere)
-## Arguments:   -s or --search
-if [[ "$1" = "-s" ]] || [[ "$1" = "--search" ]]; then
-    display_header "Search everything (titles and content)"
-
-    ##  If no search-phrase was entered - list everything
-    if [[ $# -eq 1 ]]; then
-        printf "${bold}Listing all notes due to missing searchphrase:${normal}\n"
-        echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
-            ls -1 "$DIR"
+            display_header "Note: ${bold}$fileName${normal}"
+            view_file "$dirName/$fileName"
         done
-        exit 0
-    fi
 
-    ##  Grep for every subject they listed as an arg
-    printf "${bold}Searching note titles for:${normal}\n"
-    for arg in ${@:2}; do
-        echo -e "${underline}$arg:${normal}"
+    ##  If there's more than 1, display to the user his/her possibilities
+    elif [ $RESULTS -gt 1 ]; then
+        display_header "Search note by name (>1 results)"
+        for arg in ${@:1}; do
+            echo "[$arg]"   # show searchphrase
 
-        echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
-            ls "$DIR" | grep -i "$arg" | while read LINE; do
-                echo "    $LINE" | sed 's/.gz//g'
+            for R in ${RESULTS_ARRAY[@]}; do # show results
+                echo "    $R" | cut -f1 -d':'
             done
         done
-    done
-
-
-    ## by Content
-    printf "\n${bold}Searching notes content for:${normal}\n"
-    grepper 0 ${@:2}
-
-    exit 0
-fi
-
-
-## Function:	List all files (with or without full path)
-## Arguments:	-l or --list
-if [[ "$1" = "-l" ]] || [[ "$1" = "--list" ]]; then
-    display_header "List all notes"
-    echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
-        ls "$DIR" | while read LINE; do
-            #echo "    ${DIR}/${LINE}"    # full path
-            echo "    ${LINE}"            # only note-name
-        done
-    done
-    printf "\n"
-    exit 0
-fi
-
-
-
-
-
-#==============================     MAIN    ====================================
-<<COMMENT
-userinput triggered none of the parameter-cases above
-so we can test if his parameter is a note-name or a part of a note-name 
--> if so display the results
-
-note-content is ignored at this point
-COMMENT
-
-
-RESULTS=0
-declare RESULTS_ARRAY=()
-
-while read DIR; do
-    ##  If we hit an 'exact' match
-    if [[ -e "$DIR/$1" ]]; then
-        echo -e "$1\n"
-        "$TNOTE_TEXT_VIEWER" "$DIR/$1"
-        exit 0
-    elif [[ -e "$DIR/${1}.gz" ]]; then
-        echo -e "$1\n"
-        gunzip --stdout "$DIR/${1}.gz" | "$TNOTE_TEXT_VIEWER" >& 1
-        exit 0
     fi
-
-    ##   grab the number of 'hits' given by the user's query
-    DIR_RESULTS=$(ls "$DIR" | grep -i "$1" | wc -l)
-
-    if [[ $DIR_RESULTS -gt 0 ]]; then
-        while read R; do
-            RESULTS_ARRAY+=("${R}:${DIR}")
-        done < <(ls "$DIR" | grep -i "$1")
-    fi
-
-    let RESULTS=$(( $RESULTS + $DIR_RESULTS ))
-
-done < <(echo "$TNOTEPATH" | sed 's/:/\n/g')
-
-
-##  If there are no results, inform the user and let the program quit
-if [ $RESULTS -eq 0 ]; then
-    display_header "Search note by name (0 results)"
-    printf "${red}ERROR:${normal}  No file matching pattern '$1' in $TNOTEPATH\n\n" 1>&2
-    exit 1
-
-##  If there is 1 result, display that note
-elif [ $RESULTS -eq 1 ]; then
-    display_header "Display single note"
-    for R in ${RESULTS_ARRAY[@]}; do
-        fileName="$(echo "$R" | cut -f1 -d':')"
-        dirName="$(echo "$R" | cut -f2 -d':')"
-
-        printf "Note: ${bold}$fileName${normal}\n\n" # output note-name
-        view_file "$dirName/$fileName"
-    done
-
-##  If there's more than 1, display to the user his/her possibilities
-elif [ $RESULTS -gt 1 ]; then
-    display_header "Search note by name (>1 results)"
-    for arg in ${@:1}; do
-
-        echo "${underline}$arg:${normal}"
-        #echo ""
-
-        for R in ${RESULTS_ARRAY[@]}; do
-            echo "    $R" | cut -f1 -d':'
-        done
-    done
-fi
-
+    exit 0
+    ;;
+esac
 #==============================  END MAIN    ===================================
-
 exit 0
