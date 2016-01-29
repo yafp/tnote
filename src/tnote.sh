@@ -43,6 +43,14 @@ function check_requirements
     ##  Default tnote viewer program
     if [[ -z $TNOTE_TEXT_VIEWER ]]; then
         TNOTE_TEXT_VIEWER="cat"
+
+        # check if cat exists
+        if hash cat 2>/dev/null; then
+            printf "Found required cat"
+        else
+            printf "${red}ERROR:${normal} cat is missing ... search it."
+            exit 1
+        fi
     fi
 
     ##  User directory for tnote notes
