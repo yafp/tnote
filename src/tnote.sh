@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   tnote.sh        |   version 0.2    |       GPL v3      |   2016-01-28
+#   tnote.sh        |   version 0.2    |       GPL v3      |   2016-01-30
 #   Florian Poeck   |   https://github.com/yafp/tnote
 ################################################################################
 
@@ -8,7 +8,7 @@
 #===================     CONFIG AND OTHER DEFINITIONS    =======================
 
 # script version
-version="0.2.20160129.01"
+version="0.2.20160130.01"
 
 ## Define some formatting variables for output
 bold=$(tput bold)
@@ -213,20 +213,22 @@ function view_file
 }
 
 
-
+## Function:    lists all notes
+## Arguments:   none
 function list_all_notes
 {
     echo "$TNOTEPATH" | sed 's/:/\n/g' | while read DIR; do
         ls "$DIR" | while read LINE; do
-            noteCount=$[$noteCount+1]
             #echo "    ${DIR}/${LINE}"          # full path
             printf "    ${LINE}\n"              # only note-name
-            #printf " $noteCount\t${LINE}\n"      # only note-name
         done
-    done
-    newLine 1
-}
 
+        # count notes
+        noteCount=$(ls -1 "$DIR" --file-type | grep -v '/$' | wc -l)
+        printf "\n    ${underline}Total notes:${normal} ${bold}$noteCount${normal}"
+    done
+    newLine 2
+}
 
 
 #=======================     CHECK REQUIREMENTS    =============================
