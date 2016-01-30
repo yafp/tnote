@@ -2,6 +2,8 @@
 
 2016-01-28  0.2     First official tNote version. Trimmed down to the essential parts
 
-2016-01-xx  0.3     Adding support for notes with blanks in title/name
+2016-01-30  0.3     Adding support for notes with blanks in title/name
                     Removed author email (replaced with GitHub project url)
                     Changed the user-input-check code (if -> case)
+                    Note Listing via '-l' now shows note count
+                    Add check for 'cat'

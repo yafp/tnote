@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   tnote.sh        |   version 0.2    |       GPL v3      |   2016-01-30
+#   tnote.sh        |   version 0.3    |       GPL v3      |   2016-01-30
 #   Florian Poeck   |   https://github.com/yafp/tnote
 ################################################################################
 
@@ -8,7 +8,7 @@
 #===================     CONFIG AND OTHER DEFINITIONS    =======================
 
 # script version
-version="0.2.20160130.01"
+version="0.3"
 
 ## Define some formatting variables for output
 bold=$(tput bold)
