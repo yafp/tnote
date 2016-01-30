@@ -8,7 +8,7 @@
 #===================     CONFIG AND OTHER DEFINITIONS    =======================
 
 # script version
-version="0.3"
+version="0.3.20160130.01"
 
 ## Define some formatting variables for output
 bold=$(tput bold)
@@ -382,6 +382,14 @@ case $1 in
 
     exit 0
     ;;
+
+# Search only content
+"-r" | "--rename")
+    display_header "Renaming a note"
+    dialog --title "Rename (Dummy)"  --yesno "Really rename\ fun?" 6 25    
+    exit 0
+    ;;
+
 
 *)  # Any other unexpected user input - try to search note by title
     RESULTS=0

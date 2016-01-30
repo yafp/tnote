@@ -7,3 +7,5 @@
                     Changed the user-input-check code (if -> case)
                     Note Listing via '-l' now shows note count
                     Add check for 'cat'
+
+2016-01-xx  0.4     
