@@ -7,8 +7,20 @@
 
 #===================     CONFIG AND OTHER DEFINITIONS    =======================
 
-# script version
-version="0.3.20160130.01"
+appName="tNote"                                 # script name
+appVersion="0.3.20160131.01"                    # script version
+appDialogHeadline="$appName - (v$appVersion)"
+
+# get size of term-window
+width="$(tput cols)"   # number of columns.
+height="$(tput lines)" # number of rows.
+
+# calc 90% of those values
+width="$(echo "$width*0.9" | bc)"
+height="$(echo "$height*0.8" | bc)"
+width=${width%.*}
+height=${height%.*}
+
 
 ## Define some formatting variables for output
 bold=$(tput bold)
@@ -29,64 +41,6 @@ white=$(tput setaf 7)
 
 #============================     FUNCTIONS    =================================
 
-## Function:     Check all the requirements
-## Arguments:	 none
-function check_requirements
-{
-    ##  Default 'system' directory for tnote sheets
-    if [[ -d "/usr/local/share/tnote" ]]; then
-        TNOTE_SYS_DIR=/usr/local/share/tnote
-    else
-        TNOTE_SYS_DIR=/usr/share/tnote
-    fi
-
-    ##  Default tnote viewer program
-    if [[ -z $TNOTE_TEXT_VIEWER ]]; then
-        TNOTE_TEXT_VIEWER="cat"
-
-        # check if cat exists
-        if hash cat 2>/dev/null; then
-            printf "Found required cat\n"
-        else
-            printf "${red}ERROR:${normal} cat is missing ... get one.\n"
-            exit 1
-        fi
-    fi
-
-    ##  User directory for tnote notes
-    if [[ -z $DEFAULT_TNOTE_DIR ]]; then # if var is empty -> set it
-        DEFAULT_TNOTE_DIR="${HOME}/.tnote"
-    fi
-
-    ## check if note folder doesnt exists
-    if [ ! -d "$DEFAULT_TNOTE_DIR" ]; then
-        mkdir "$DEFAULT_TNOTE_DIR"
-        printf "Initially created tNote folder at: $DEFAULT_TNOTE_DIR\n"
-    fi
-
-    ##  note path
-    if [[ -z $TNOTEPATH ]]; then
-        TNOTEPATH="${DEFAULT_TNOTE_DIR}"
-    fi
-
-    ##  Check to make sure that their tnote directory exists.  If it does, great.
-    ##  If not, exit and tell them.
-    if [ ! -n "$TNOTEPATH" ]; then
-        if [ ! -d "$TNOTE_SYS_DIR" ] && [ ! -d "$DEFAULT_TNOTE_DIR" ]; then
-            printf "${red}ERROR:${normal}  No tNote directory found.\n" 1>&2
-            printf "\tConsult the help (tnote -h) for more info\n" 1>&2
-            exit 1
-        else
-            cp -r "$TNOTE_SYS_DIR" "$DEFAULT_TNOTE_DIR"
-            TNOTEPATH="$DEFAULT_TNOTE_DIR"
-            if [ ! -d "$DEFAULT_TNOTE_DIR" ]; then
-                printf "${red}ERROR:${normal}  Cannot write to $DEFAULT_TNOTE_DIR\n" 1>&2
-                exit 1
-            fi
-        fi
-    fi
-}
-
 ## Function:     Prints a new line
 ## Arguments:    amount of new lines (example: newLine 5)
 function newLine
@@ -104,9 +58,90 @@ function newLine
 function display_header
 {
     clear
-    printf "${underline}${bold}tNote${normal} (v$version) - $1"
+    printf "${underline}${bold}$appName${normal} - (v$appVersion) - $1"
     newLine 2
 }
+
+
+## Function:     Check all the requirements
+## Arguments:	 none
+function check_requirements
+{
+    display_header "Checking requirements"
+    ##  Default 'system' directory for notes
+    if [[ -d "/usr/local/share/tnote" ]]; then
+        TNOTE_SYS_DIR=/usr/local/share/tnote
+    else
+        TNOTE_SYS_DIR=/usr/share/tnote
+    fi
+
+    ##  Default tnote viewer program
+    if [[ -z $TNOTE_TEXT_VIEWER ]]; then
+        TNOTE_TEXT_VIEWER="cat"
+
+        # check if 'cat' exists
+        if hash cat 2>/dev/null; then
+            printf "${green}[OK]${normal}\tFound required cat\n"
+        else
+            printf "${red}ERROR:${normal} cat is missing ... get one.\n"
+            exit 1
+        fi
+    fi
+
+    # Check if 'dialog' exists
+    if hash dialog 2>/dev/null; then
+        printf "${green}[OK]${normal}\tFound dialog\n"
+        dialogExist=1
+    else
+        printf "${yellow}WARNING:${normal} dialog is missing.\n"
+        dialogExist=0
+    fi
+
+    ##  User directory for tnote notes
+    if [[ -z $DEFAULT_TNOTE_DIR ]]; then # if var is empty -> set it
+        DEFAULT_TNOTE_DIR="${HOME}/.tnote"
+    fi
+
+    ## check if note folder doesnt exists
+    if [ ! -d "$DEFAULT_TNOTE_DIR" ]; then
+        mkdir "$DEFAULT_TNOTE_DIR"
+
+        if [[ "$dialogExist" == 1 ]]; then
+            dialog --title "Missing $appName folder" --backtitle "$appDialogHeadline" --msgbox "Created $appName folder $DEFAULT_TNOTE_DIR" 5 80
+        else
+            printf "${green}[OK]${normal}\tCreated $appName folder $DEFAULT_TNOTE_DIR\n"
+        fi
+    fi
+
+    ##  note path
+    if [[ -z $TNOTEPATH ]]; then
+        TNOTEPATH="${DEFAULT_TNOTE_DIR}"
+    fi
+
+    ##  Check to make sure that their tnote directory exists.  If it does, great.
+    ##  If not, exit and tell them.
+    if [ ! -n "$TNOTEPATH" ]; then
+        if [ ! -d "$TNOTE_SYS_DIR" ] && [ ! -d "$DEFAULT_TNOTE_DIR" ]; then
+            printf "${red}ERROR:${normal}  No t$appName directory found.\n" 1>&2
+            printf "\tConsult the help (tnote -h) for more info\n" 1>&2
+            exit 1
+        else
+            cp -r "$TNOTE_SYS_DIR" "$DEFAULT_TNOTE_DIR"
+            TNOTEPATH="$DEFAULT_TNOTE_DIR"
+            if [ ! -d "$DEFAULT_TNOTE_DIR" ]; then
+                printf "${red}ERROR:${normal}  Cannot write to $DEFAULT_TNOTE_DIR\n" 1>&2
+                exit 1
+            fi
+        fi
+    fi
+
+    printf "\nFinished checking requirements without issues\n"
+
+    # might be nice to display notes - in read-only mode if that makes sense at all
+    #dialog --textbox /etc/profile $height $width
+    #exit 1
+}
+
 
 ## Function:     Detects the default editor of the user
 ## Arguments:    none
@@ -141,9 +176,10 @@ function print_help
     printf "  -sc or --searchcontent:\tSearch for keyword(s) in note content\n"
     printf "  -l or --list:\t\t\tList all notes\n"
 
-    printf "${bold}- Add and edit:${normal}\n"
+    printf "${bold}- Add,edit and delete:${normal}\n"
     printf "  -a or --add:\t\t\tCreate a new note\n"
-    printf "  -e or --edit:\t\t\tEdit a tnote file using default editor\n"
+    printf "  -e or --edit:\t\t\tEdit a note using default editor\n"
+    printf "  -d or --delete:\t\tDelete a note\n"
 
     printf "${bold}- Misc:${normal}\n"
     printf "  -h or --help:\t\t\tThis help screen\n"
@@ -162,8 +198,8 @@ function print_help
 ## Arguments:   none
 function print_version
 {
-    display_header "Version"
-    printf "${bold}tnote.sh${normal} - version $version by Florian Poeck (https://github.com/yafp/tnote)\n"
+    display_header "Version details"
+    printf "${bold}tnote.sh${normal} - version $appVersion by Florian Poeck (https://github.com/yafp/tnote)\n"
 }
 
 
@@ -230,6 +266,21 @@ function list_all_notes
     newLine 2
 }
 
+## Function:    delete a note
+## Arguments:
+function delete_file()
+{
+	local f="$1"
+	local m="$0: file $f failed to delete."
+	if [ -f $f ]
+	then
+		/bin/rm $FILE && m="$0: $f file deleted."
+	else
+		m="$0: $f is not a file."
+	fi
+	dialog --title "Remove file" --backtitle "$appDialogHeadline" --clear --msgbox "$m" 10 50
+    clear
+}
 
 #=======================     CHECK REQUIREMENTS    =============================
 check_requirements
@@ -260,7 +311,7 @@ case $1 in
 
 # List all notes
 "-l" | "--list")
-    display_header "List all notes"
+    display_header "List all notes in ${underline}$DEFAULT_TNOTE_DIR${normal}"
     list_all_notes
     exit 0
     ;;
@@ -343,8 +394,28 @@ case $1 in
 
     # check if a second parameter was supplied
     if [ "$#" -lt 2 ]; then
-        printf "${red}ERROR:${normal}  No note title specified\n" 1>&2
-        exit 1
+        if [ "$1" = "-a" ] || [ "$1" = "--add" ]; then # user wants to add a new note but has not entered a fileName - make it interactive instead
+            if [[ "$dialogExist" == 1 ]]; then
+                user_input=$(\
+                    dialog --title "Missing note name" \
+                    --backtitle "$appDialogHeadline"\
+                    --inputbox "Enter name for new note:" 8 $width \
+                    3>&1 1>&2 2>&3 3>&- \
+                )
+                clear
+
+                if [[ "$user_input" == "" ]]; then # user entered no note name in interactive dialog
+                    printf "${red}ERROR:${normal}  No note title specified\n" 1>&2
+                    exit 1
+                fi
+            fi
+
+        else # its edit mode
+            printf "${red}ERROR:${normal}  No note title specified\n" 1>&2
+            exit 1
+        fi
+    else # second parm was entered
+        user_input=$2
     fi
 
     # check if more then 2 parameter was supplied -> error
@@ -361,19 +432,19 @@ case $1 in
     existing=0
     while read F; do
         ##  Check and see if we get any hits on the 'edit' search
-        if [[ -e "${F}/${2}" ]]; then # file/note exits
-            if file -b "${F}/${2}" | grep text > /dev/null; then
+        if [[ -e "${F}/${user_input}" ]]; then # file/note exits
+            if file -b "${F}/${user_input}" | grep text > /dev/null; then
                 let existing=$(( $existing + 1 ))
-                filesToEdit+=("${F}/${2}")
+                filesToEdit+=("${F}/${user_input}")
             else
-                printf "${yellow}WARNING:${normal}  Not a text file:  '${2}'\n"
+                printf "${yellow}WARNING:${normal}  Not a text file:  '${user_input}'\n"
             fi
         fi
     done < <(echo "$TNOTEPATH" | sed 's/:/\n/g')
 
     ##  If we didn't get any hits, create one in default dir
     if [[ $existing -eq 0 ]]; then
-        filesToEdit+=("${DEFAULT_TNOTE_DIR}/${2}")
+        filesToEdit+=("${DEFAULT_TNOTE_DIR}/${user_input}")
     fi
 
     ##  Edit 'em
@@ -383,13 +454,32 @@ case $1 in
     exit 0
     ;;
 
-# Search only content
+# Rename a note
 "-r" | "--rename")
     display_header "Renaming a note"
-    dialog --title "Rename (Dummy)"  --yesno "Really rename\ fun?" 6 25    
+    dialog --title "Rename" --backtitle "$appDialogHeadline" --yesno "Do you really want to rename?" 6 25
+    # 0 = yes
+    # 1 = no
+    response=$?
+    case $response in
+        0) echo "File deleted.";;
+        1) echo "File not deleted.";;
+        255) echo "[ESC] key pressed.";;
+    esac
     exit 0
     ;;
 
+
+# Delete a note
+    "-d" | "--delete")
+    FILE=$(dialog --title "Delete a file" --stdout --title "Please choose a file to delete" --backtitle "$appDialogHeadline" --fselect $DEFAULT_TNOTE_DIR/ 14 48)
+    clear
+    #echo "${FILE} file chosen."
+
+    # delete file
+    [ ! -z $FILE ] && delete_file "$FILE"
+    exit 0
+    ;;
 
 *)  # Any other unexpected user input - try to search note by title
     RESULTS=0
