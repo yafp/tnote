@@ -18,7 +18,7 @@ TOC:
     The code is based on 'cheat' by James Hendrie
 
 
-3.  Requirements
+2.  Requirements
     'tNote' relies on 'bash', 'cat', 'mv', 'rm' and the EDITOR environment variable.
     For interactive mode you need as well 'dialog'.
 
