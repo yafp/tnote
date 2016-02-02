@@ -8,19 +8,20 @@
 #===================     CONFIG AND OTHER DEFINITIONS    =======================
 
 appName="tNote"                                 # script name
-appVersion="0.3.20160131.01"                    # script version
+appVersion="0.3.20160202.01"                    # script version
 appDialogHeadline="$appName - (v$appVersion)"
+appAuthor="Florian Poeck"
+appCodeURL="https://github.com/yafp/tnote"
 
 # get size of term-window
 width="$(tput cols)"   # number of columns.
 height="$(tput lines)" # number of rows.
 
-# calc 90% of those values
+# calc x% of those values
 width="$(echo "$width*0.9" | bc)"
-height="$(echo "$height*0.8" | bc)"
+height="$(echo "$height*0.7" | bc)"
 width=${width%.*}
 height=${height%.*}
-
 
 ## Define some formatting variables for output
 bold=$(tput bold)
@@ -167,27 +168,28 @@ function print_help
 {
     display_header "Help"
 
-    printf "${bold}Usage:${normal}  tnote [OPTION] FILE\n\n"
+    printf "${bold}Usage:${normal}  tnote [OPTION] NOTE\n\n"
     printf "${bold}Options:${normal}\n"
 
     printf "${bold}- Search:${normal}\n"
-    printf "  -s or --search:\t\tSearch for keyword(s) in note titles and content\n"
-    printf "  -st or --searchtitle:\t\tSearch for keyword(s) in note titles\n"
-    printf "  -sc or --searchcontent:\tSearch for keyword(s) in note content\n"
-    printf "  -l or --list:\t\t\tList all notes\n"
+    printf "  -s  or --search\t\tSearch for keyword(s) in note titles and content\n"
+    printf "  -st or --searchtitle\t\tSearch for keyword(s) in note titles\n"
+    printf "  -sc or --searchcontent\tSearch for keyword(s) in note content\n"
+    printf "  -l  or --list\t\t\tList all notes\n"
 
-    printf "${bold}- Add,edit and delete:${normal}\n"
-    printf "  -a or --add:\t\t\tCreate a new note\n"
-    printf "  -e or --edit:\t\t\tEdit a note using default editor\n"
-    printf "  -d or --delete:\t\tDelete a note\n"
+    printf "${bold}- Add,edit, rename and delete:${normal}\n"
+    printf "  -a or --add\t\t\tCreate a new note\n"
+    printf "  -e or --edit\t\t\tEdit a note using default editor\n"
+    printf "  -r or --rename\t\tRename a note\n"
+    printf "  -d or --delete\t\tDelete a note\n"
 
     printf "${bold}- Misc:${normal}\n"
-    printf "  -h or --help:\t\t\tThis help screen\n"
-    printf "  -v or --version:\t\tDisplay version information\n"
+    printf "  -h or --help\t\t\tThis help screen\n"
+    printf "  -v or --version\t\tDisplay version information\n"
 
     printf "\n${bold}Examples:${normal}\n"
-    printf "  tnote -s foo:\t\t\tFind all notes containing the string 'foo'\n"
-    printf "  tnote bar:\t\t\tDisplay note with title 'bar'\n"
+    printf "  tnote -s foo\t\t\tFind all notes containing the string 'foo'\n"
+    printf "  tnote bar\t\t\tDisplay note with title 'bar'\n"
 
     printf "\nBy default, tNote notes are kept in the ~/.tnote directory.\n"
     printf "See the README file for more details.\n"
@@ -199,7 +201,9 @@ function print_help
 function print_version
 {
     display_header "Version details"
-    printf "${bold}tnote.sh${normal} - version $appVersion by Florian Poeck (https://github.com/yafp/tnote)\n"
+    printf "    Author:\t$appAuthor\n"
+    printf "    Version:\t$appVersion\n"
+    printf "    Code:\t$appCodeURL\n"
 }
 
 
@@ -241,7 +245,6 @@ function grepper
 ## Arguments:   1 (The full file name, including path)
 function view_file
 {
-    ##  Text files
     if file -bL "$1" | grep text > /dev/null; then
         "$TNOTE_TEXT_VIEWER" "$1"
     fi
@@ -268,7 +271,7 @@ function list_all_notes
 
 ## Function:    delete a note
 ## Arguments:
-function delete_file()
+function delete_note()
 {
 	local f="$1"
 	local m="$0: file $f failed to delete."
@@ -278,8 +281,32 @@ function delete_file()
 	else
 		m="$0: $f is not a file."
 	fi
-	dialog --title "Remove file" --backtitle "$appDialogHeadline" --clear --msgbox "$m" 10 50
+	dialog --title "Delete note" --backtitle "$appDialogHeadline" --clear --msgbox "$m" 10 50
     clear
+}
+
+
+## Function:    rename a note
+## Arguments:   $FILE (name of note)
+function rename_note()
+{
+    # ask if user really wants to do so
+    dialog --title "Rename" --backtitle "$appDialogHeadline" --yesno "Do you really want to rename $1?" 6 $width
+    response=$?
+    case $response in
+        0) # yes
+            #echo "Rename file"
+            /bin/mv "$1" "$2"
+            ;;
+
+        1) # no
+            echo "User cancelled."
+            ;;
+
+        255)
+            echo "[ESC] key pressed."
+            ;;
+    esac
 }
 
 #=======================     CHECK REQUIREMENTS    =============================
@@ -291,7 +318,6 @@ if [ $# -lt 1 ]; then
 	print_help
 	exit 0
 fi
-
 
 #==============================     MAIN    ====================================
 # react on user input
@@ -392,25 +418,24 @@ case $1 in
         display_header "Editing an existing note"
     fi
 
-    # check if a second parameter was supplied
-    if [ "$#" -lt 2 ]; then
+    if [ "$#" -lt 2 ]; then # check if a second parameter was supplied
         if [ "$1" = "-a" ] || [ "$1" = "--add" ]; then # user wants to add a new note but has not entered a fileName - make it interactive instead
             if [[ "$dialogExist" == 1 ]]; then
                 user_input=$(\
-                    dialog --title "Missing note name" \
+                    dialog --title "Adding a note" \
                     --backtitle "$appDialogHeadline"\
-                    --inputbox "Enter name for new note:" 8 $width \
+                    --inputbox "Please enter a name for the new note" 8 $width \
                     3>&1 1>&2 2>&3 3>&- \
                 )
                 clear
 
                 if [[ "$user_input" == "" ]]; then # user entered no note name in interactive dialog
-                    printf "${red}ERROR:${normal}  No note title specified\n" 1>&2
+                    printf "${red}ERROR:${normal} Aborted note creation\n" 1>&2
                     exit 1
                 fi
             fi
 
-        else # its edit mode
+        else # so second parm & its edit mode (-e) -> abort
             printf "${red}ERROR:${normal}  No note title specified\n" 1>&2
             exit 1
         fi
@@ -457,28 +482,63 @@ case $1 in
 # Rename a note
 "-r" | "--rename")
     display_header "Renaming a note"
-    dialog --title "Rename" --backtitle "$appDialogHeadline" --yesno "Do you really want to rename?" 6 25
-    # 0 = yes
-    # 1 = no
-    response=$?
-    case $response in
-        0) echo "File deleted.";;
-        1) echo "File not deleted.";;
-        255) echo "[ESC] key pressed.";;
-    esac
+
+    if [ "$#" -lt 2 ]; then # no second parameter was supplied - assume user wants to do it interactive
+        if [[ "$dialogExist" == 1 ]]; then
+            printf "foo"
+            FILE=$(dialog --title "Rename a note" --stdout --title "Please choose a note to rename" --backtitle "$appDialogHeadline" --fselect $DEFAULT_TNOTE_DIR/ $height $width)
+
+            if [[ "$FILE" == "" ]]; then # user entered no note name in interactive dialog
+                printf "${red}ERROR:${normal}  No note title specified to rename\n" 1>&2
+                exit 1
+            fi
+        fi
+    else # second parameter was supplied - lets assume its a note name
+        FILE="$DEFAULT_TNOTE_DIR/$2"
+    fi
+
+    # check for a third parameter - the new name - if it wasnt supplied - offer an interactive dialog to enter it
+    if [ -z "$3" ]; then # $3 is unset
+        NEWNOTENAME=$(\
+            dialog --title "Define new note name" \
+            --backtitle "$appDialogHeadline"\
+            --inputbox "Please enter the new note name" 8 $width \
+            3>&1 1>&2 2>&3 3>&- \
+        )
+    else
+        NEWNOTENAME="$3"
+    fi
+
+    NEWNOTENAME="$DEFAULT_TNOTE_DIR/$NEWNOTENAME"
+
+    if [ -f $FILE ]; then # if the note exists - try to rename it
+        rename_note "$FILE" "$NEWNOTENAME"
+        exit 0
+    else # note doesnt exist - abort
+        printf "${red}ERROR:${normal}  The note $FILE does not exist. Please check names.\n" 1>&2
+        exit 1
+    fi
     exit 0
     ;;
 
-
 # Delete a note
-    "-d" | "--delete")
-    FILE=$(dialog --title "Delete a file" --stdout --title "Please choose a file to delete" --backtitle "$appDialogHeadline" --fselect $DEFAULT_TNOTE_DIR/ 14 48)
-    clear
-    #echo "${FILE} file chosen."
+"-d" | "--delete")
+    display_header "Delete a note"
+    if [ "$#" -lt 2 ]; then # no second parameter was supplied - assume user wants to do it interactive
+        FILE=$(dialog --title "Delete a file" --stdout --title "Please choose a file to delete" --backtitle "$appDialogHeadline" --fselect $DEFAULT_TNOTE_DIR/ $height $width)
+        clear
+    else # user supplied the note-name already as $2
+        FILE="$DEFAULT_TNOTE_DIR/$2"
+    fi
 
-    # delete file
-    [ ! -z $FILE ] && delete_file "$FILE"
-    exit 0
+    # delete the file - if it exists
+    if [ -f $FILE ]; then
+        delete_note "$FILE"
+        exit 0
+    else
+        printf "${red}ERROR:${normal}  The note $FILE does not exist. Please check names.\n" 1>&2
+        exit 1
+    fi
     ;;
 
 *)  # Any other unexpected user input - try to search note by title
