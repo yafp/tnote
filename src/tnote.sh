@@ -1,27 +1,28 @@
 #!/bin/bash
 ################################################################################
-#   tnote.sh        |   version 0.3    |       GPL v3      |   2016-01-30
+#   tnote.sh        |   version 0.3    |       GPL v3      |   2016-02-03
 #   Florian Poeck   |   https://github.com/yafp/tnote
 ################################################################################
 
 
 #===================     CONFIG AND OTHER DEFINITIONS    =======================
 
-appName="tNote"                                 # script name
-appVersion="0.3.20160202.01"                    # script version
-appDialogHeadline="$appName - (v$appVersion)"
-appAuthor="Florian Poeck"
-appCodeURL="https://github.com/yafp/tnote"
+declare -r APPNAME="tNote"                                 # script name
+declare -r APPVERSION="0.3.20160203.01"                    # script version
+declare -r APPDIALOGHEADLINE="$APPNAME - (v$APPVERSION)"
+declare -r APPAUTHOR="Florian Poeck"
+declare -r APPCODEURL="https://github.com/yafp/tnote"
 
 # get size of term-window
-width="$(tput cols)"   # number of columns.
-height="$(tput lines)" # number of rows.
+WIDTH="$(tput cols)"   # number of columns.
+HEIGHT="$(tput lines)" # number of rows.
 
 # calc x% of those values
-width="$(echo "$width*0.9" | bc)"
-height="$(echo "$height*0.7" | bc)"
-width=${width%.*}
-height=${height%.*}
+DIALOGWIDTH="$(echo "$WIDTH*0.9" | bc)"
+DIALOGWIDTH=${DIALOGWIDTH%.*}
+
+DIALOGHEIGHT="$(echo "$HEIGHT*0.7" | bc)"
+DIALOGHEIGHT=${DIALOGHEIGHT%.*}
 
 ## Define some formatting variables for output
 bold=$(tput bold)
@@ -46,11 +47,10 @@ white=$(tput setaf 7)
 ## Arguments:    amount of new lines (example: newLine 5)
 function newLine
 {
-    loopCycle="0"
-    while [ $loopCycle -lt $1 ]
-    do
+    local LOOPCYCLE="0"
+    while [ $LOOPCYCLE -lt $1 ]; do
         printf "\n"
-        loopCycle=$[$loopCycle+1]
+        LOOPCYCLE=$[$LOOPCYCLE+1]
     done
 }
 
@@ -59,7 +59,19 @@ function newLine
 function display_header
 {
     clear
-    printf "${underline}${bold}$appName${normal} - (v$appVersion) - $1"
+    local LOOPCYCLE="0"
+    while [ $LOOPCYCLE -lt $WIDTH ]; do
+        printf "="
+        LOOPCYCLE=$[$LOOPCYCLE+1]
+    done
+
+    printf "\n ${underline}${bold}$APPNAME${normal} - $1 (v$APPVERSION)\n"
+
+    LOOPCYCLE="0"
+    while [ $LOOPCYCLE -lt $WIDTH ]; do
+        printf "="
+        LOOPCYCLE=$[$LOOPCYCLE+1]
+    done
     newLine 2
 }
 
@@ -108,9 +120,9 @@ function check_requirements
         mkdir "$DEFAULT_TNOTE_DIR"
 
         if [[ "$dialogExist" == 1 ]]; then
-            dialog --title "Missing $appName folder" --backtitle "$appDialogHeadline" --msgbox "Created $appName folder $DEFAULT_TNOTE_DIR" 5 80
+            dialog --title "Missing $APPNAME folder" --backtitle "$APPDIALOGHEADLINE" --msgbox "Created $APPNAME folder $DEFAULT_TNOTE_DIR" 5 80
         else
-            printf "${green}[OK]${normal}\tCreated $appName folder $DEFAULT_TNOTE_DIR\n"
+            printf "${green}[OK]${normal}\tCreated $APPNAME folder $DEFAULT_TNOTE_DIR\n"
         fi
     fi
 
@@ -123,7 +135,7 @@ function check_requirements
     ##  If not, exit and tell them.
     if [ ! -n "$TNOTEPATH" ]; then
         if [ ! -d "$TNOTE_SYS_DIR" ] && [ ! -d "$DEFAULT_TNOTE_DIR" ]; then
-            printf "${red}ERROR:${normal}  No t$appName directory found.\n" 1>&2
+            printf "${red}ERROR:${normal}  No t$APPNAME directory found.\n" 1>&2
             printf "\tConsult the help (tnote -h) for more info\n" 1>&2
             exit 1
         else
@@ -201,9 +213,9 @@ function print_help
 function print_version
 {
     display_header "Version details"
-    printf "    Author:\t$appAuthor\n"
-    printf "    Version:\t$appVersion\n"
-    printf "    Code:\t$appCodeURL\n"
+    printf "    Author:\t$APPAUTHOR\n"
+    printf "    Version:\t$APPVERSION\n"
+    printf "    Code:\t$APPCODEURL\n"
 }
 
 
@@ -281,7 +293,7 @@ function delete_note()
 	else
 		m="$0: $f is not a file."
 	fi
-	dialog --title "Delete note" --backtitle "$appDialogHeadline" --clear --msgbox "$m" 10 50
+	dialog --title "Delete note" --backtitle "$APPDIALOGHEADLINE" --clear --msgbox "$m" 10 50
     clear
 }
 
@@ -291,7 +303,7 @@ function delete_note()
 function rename_note()
 {
     # ask if user really wants to do so
-    dialog --title "Rename" --backtitle "$appDialogHeadline" --yesno "Do you really want to rename $1?" 6 $width
+    dialog --title "Rename" --backtitle "$APPDIALOGHEADLINE" --yesno "Do you really want to rename $1?" 6 $DIALOGWIDTH
     response=$?
     case $response in
         0) # yes
@@ -344,11 +356,11 @@ case $1 in
 
 # Search anywhere
 "-s" | "--search")
-    display_header "Search anywhere (titles and content)"
+    display_header "Search anywhere"
 
     ##  If no search-phrase was entered - list everything
     if [[ $# -eq 1 ]]; then
-        display_header "List all notes (due to missing searchphrase)"
+        display_header "List all notes due to missing searchphrase"
         list_all_notes
         exit 0
     fi
@@ -423,8 +435,8 @@ case $1 in
             if [[ "$dialogExist" == 1 ]]; then
                 user_input=$(\
                     dialog --title "Adding a note" \
-                    --backtitle "$appDialogHeadline"\
-                    --inputbox "Please enter a name for the new note" 8 $width \
+                    --backtitle "$APPDIALOGHEADLINE"\
+                    --inputbox "Please enter a name for the new note" 8 $DIALOGWIDTH \
                     3>&1 1>&2 2>&3 3>&- \
                 )
                 clear
@@ -486,7 +498,7 @@ case $1 in
     if [ "$#" -lt 2 ]; then # no second parameter was supplied - assume user wants to do it interactive
         if [[ "$dialogExist" == 1 ]]; then
             printf "foo"
-            FILE=$(dialog --title "Rename a note" --stdout --title "Please choose a note to rename" --backtitle "$appDialogHeadline" --fselect $DEFAULT_TNOTE_DIR/ $height $width)
+            FILE=$(dialog --title "Rename a note" --stdout --title "Please choose a note to rename" --backtitle "$APPDIALOGHEADLINE" --fselect $DEFAULT_TNOTE_DIR/ $DIALOGHEIGHT $DIALOGWIDTH)
 
             if [[ "$FILE" == "" ]]; then # user entered no note name in interactive dialog
                 printf "${red}ERROR:${normal}  No note title specified to rename\n" 1>&2
@@ -501,8 +513,8 @@ case $1 in
     if [ -z "$3" ]; then # $3 is unset
         NEWNOTENAME=$(\
             dialog --title "Define new note name" \
-            --backtitle "$appDialogHeadline"\
-            --inputbox "Please enter the new note name" 8 $width \
+            --backtitle "$APPDIALOGHEADLINE"\
+            --inputbox "Please enter the new note name" 8 $DIALOGWIDTH \
             3>&1 1>&2 2>&3 3>&- \
         )
     else
@@ -525,7 +537,7 @@ case $1 in
 "-d" | "--delete")
     display_header "Delete a note"
     if [ "$#" -lt 2 ]; then # no second parameter was supplied - assume user wants to do it interactive
-        FILE=$(dialog --title "Delete a file" --stdout --title "Please choose a file to delete" --backtitle "$appDialogHeadline" --fselect $DEFAULT_TNOTE_DIR/ $height $width)
+        FILE=$(dialog --title "Delete a file" --stdout --title "Please choose a file to delete" --backtitle "$APPDIALOGHEADLINE" --fselect $DEFAULT_TNOTE_DIR/ $DIALOGHEIGHT $DIALOGWIDTH)
         clear
     else # user supplied the note-name already as $2
         FILE="$DEFAULT_TNOTE_DIR/$2"
