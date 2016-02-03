@@ -8,7 +8,8 @@
                     Note Listing via '-l' now shows note count
                     Add check for 'cat'
 
-2016-01-xx  0.4     Adding support for dialogs
+2016-02-03  0.4     Adding support for dialogs
                     Adding dialog driven note-creation, note-deletion etc..
                     Adding a delete-note function
                     Adding a rename-note function
+                    Adding requirements to readme

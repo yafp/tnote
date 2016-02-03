@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-#   tnote.sh        |   version 0.3    |       GPL v3      |   2016-02-03
+#   tnote.sh        |   version 0.4    |       GPL v3      |   2016-02-03
 #   Florian Poeck   |   https://github.com/yafp/tnote
 ################################################################################
 
@@ -8,7 +8,7 @@
 #===================     CONFIG AND OTHER DEFINITIONS    =======================
 
 declare -r APPNAME="tNote"                                 # script name
-declare -r APPVERSION="0.3.20160203.01"                    # script version
+declare -r APPVERSION="0.4"                                 # script version
 declare -r APPDIALOGHEADLINE="$APPNAME - (v$APPVERSION)"
 declare -r APPAUTHOR="Florian Poeck"
 declare -r APPCODEURL="https://github.com/yafp/tnote"
